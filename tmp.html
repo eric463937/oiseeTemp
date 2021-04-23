@@ -1,0 +1,266 @@
+<!doctype html>
+<html style="height: 98%;">
+
+<head>
+    <meta charset="utf-8">
+    <title>OISEE 實驗</title>
+    <!-- <link rel="icon" href="icons/LOGO.svg"> -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100;300;400;500;700;900&display=swap"
+        rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
+    <title></title>
+</head>
+
+<style>
+    blockquote {
+        padding-left: 16px;
+        position: relative;
+    }
+
+    blockquote:before {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        display: block;
+        width: 4px;
+        /* height: 20px; */
+        border-radius: 8px;
+        background: rgba(var(--sk_foreground_low_solid, 221, 221, 221), 1);
+        content: "";
+    }
+
+    .form-control {
+        padding: 8px 12px;
+
+    }
+
+    code {
+        padding: 2px 3px 1px;
+        border: 1px solid var(--saf-0);
+        border-radius: 3px;
+        background-color: rgba(var(--sk_foreground_min, 15, 15, 15), .07);
+        color: #e01e5a;
+    }
+
+    strong.hint {
+        font-family: 'Noto Sans TC', sans-serif !important;
+        font-weight: 700;
+    }
+</style>
+
+
+
+<body class="hostElt nonScrollBar" style="height: 100%; background-color: #333333; align-content: center;">
+    <div style="padding: 5vh 10vw;">
+        <div class="toast" style="position: absolute; bottom: 5vw; left: 5vw;">
+            <div class="toast-header">
+                通知
+            </div>
+            <div class="toast-body">
+                轉換的路徑已複製到剪貼簿
+            </div>
+        </div>
+        <div class="row">
+            <textarea class="form-control col linked" style="height: 30vh;" aria-label="With textarea" id="input"
+                placeholder="(文本)
+                "></textarea>
+            <div class="col-1" style="width:10vw; height: 30vh; margin: auto; display: flex;">
+                <div style="margin: auto;">
+                    <button type="button" class="btn btn-info col" id="btn" onclick="convert('keepComma')"
+                        data-toggle="tooltip" data-placement="bottom" data-html="true" title="保留所有逗號"
+                        style="margin: 10px auto">
+
+                    </button>
+                    <button type="button" class="btn btn-info col" id="btn" onclick="convert('removeEndComma')"
+                        data-toggle="tooltip" data-placement="bottom" data-html="true" title="刪除行尾逗號"
+                        style="margin: 10px auto">
+
+                    </button>
+                    <button type="button" class="btn btn-info col" id="btn" onclick="convertToTable()"
+                        data-toggle="tooltip" data-placement="bottom" data-html="true" title=""
+                        style="margin: 10px auto">
+                        表格化
+                    </button>
+                    <button type="button" class="btn btn-info col" id="btn" onclick="copyConvertedTxt()"
+                        style="margin: 10px auto">複製文字</button>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                欄數
+                            </div>
+                        </div>
+                        <input type="text" class="form-control" id="columnNum" aria-label="Text input with checkbox"
+                            value="6">
+                    </div>
+                </div>
+
+            </div>
+            <!-- ref   https://developer.cdn.mozilla.net/zh-CN/docs/Web/CSS/repeating-linear-gradient() -->
+            <div class="col p-0">
+                <!-- <div class="col"
+                    style="position:fixed ;background: rgba(111,111,111,0.2) ;height: 30vh; width: inherit;"
+                    unselectable="on"></div> -->
+                <textarea contenteditable="true" class="form-control hwt-highlights" style="height: 30vh; ; "
+                    aria-label="With textarea" id="output" placeholder="整理後文字"></textarea>
+            </div>
+        </div>
+        <div class="m-4"></div>
+        <div class="row">
+            <div class="form-control" contenteditable="true" style="height: 50vh;overflow:auto" id="tableOutput"
+                style="overflow:scroll">
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+<script type="text/javascript">
+
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+    })
+    var inputContainer = document.getElementById("input")
+    var outputContainer = document.getElementById("output")
+    var outputTableContainer = document.getElementById("tableOutput")
+    var columnNumContainer = document.getElementById("columnNum")
+    outputContainer.addEventListener('input', function () {
+        outputContainer.style.backgroundPosition = "center " + (400 - outputContainer.scrollHeight) + "px"
+        // outputContainer.style.backgroundPosition = "0, center"
+        console.log(outputContainer.scrollHeight)
+    })
+    function checkClipboard() {
+        try {
+            // alert("0")
+
+            var originalContent = document.getElementById("input").value
+            var clipboardTxt = ""
+            navigator.clipboard.readText()
+                .then(text => {
+                    clipboardTxt = text;
+                    // `text` contains the text read from the clipboard
+                })
+                .catch(err => {
+                    // maybe user didn't grant access to read from clipboard
+                    console.log('Something went wrong', err);
+                });
+            // alert(clipboardTxt)
+            if (originalContent != clipboardTxt && clipboardTxt.match("GoogleDrive")) {
+                document.execCommand("Paste");
+            }
+        } catch (err) { alert(err.line + err) }
+    }
+
+
+    var commaType = "removeEndComma"
+    var lastOriginalTxt = ""
+    var lastConvertedTxt = ""
+    function convert(comma) {
+        var originalScript = document.getElementById("input").value, convertedScript
+        var outputContainer = document.getElementById('output');
+        convertedScript = originalScript
+        if (comma == "keepComma") {
+            commaType = "keepComma"
+        } else if (comma == "removeEndComma") {
+            convertedScript = convertedScript.replace(/[\uff0c\u3002]\n/g, "\n")
+            commaType = "removeEndComma"
+        } else if (comma == "removeAllComma") {
+            convertedScript = convertedScript.replace(/[\uff0c\u3002]/g, "\n")
+            commaType = "removeAllComma"
+
+        }
+        convertedScript = convertedScript.replace(/\[/g, "(")
+        convertedScript = convertedScript.replace(/\]/g, ")")
+        convertedScript = convertedScript.replace(/([)%0-9]) /g, "$1\n")
+        convertedScript = convertedScript.replace(/\n±/g, " ±")
+        convertedScript = convertedScript.replace(/\n\(/g, " (")
+        convertedScript = convertedScript.replace(/\(/g, " (")
+        convertedScript = convertedScript.replace(/\nCI/g, " CI")
+        convertedScript = convertedScript.replace(/([A-Za-z][0-9])\n/g, "$1 ")
+        convertedScript = convertedScript.replace(/  /g, " ")
+        // outputContainer.value = encode(convertedScript)
+        outputContainer.innerText = escape(convertedScript)
+        // outputContainer.innerText = convertedScript
+    }
+    var curtr, curtd
+
+    function convertToTable() {
+        try {
+
+
+            var contentsAry = outputContainer.value.split("\n"), k = 0
+            columns = Number(columnNumContainer.value)
+            try {
+                while (outputTableContainer.childNodes.length > 0) {
+                    outputTableContainer.removeChild(outputTableContainer.childNodes[0])
+                }
+            } catch (err) {
+
+            }
+            var coloredBG = 0
+            if (outputTableContainer.childNodes.length < contentsAry.length / columns) {
+                // while (k < 10) {
+                while (outputTableContainer.childNodes.length < contentsAry.length / columns) {
+
+                    curtr = document.createElement('tr');
+                    if (coloredBG) {
+                        curtr.style = "background: rgba(240,240,240,1);"
+                        curtr.class = "row"
+
+                    } else {
+
+                    }
+
+                    while (curtr.childNodes.length < columns) {
+                        curtd = document.createElement('td');
+                        if (contentsAry.length > k) {
+                            curtd.innerText = contentsAry[k]
+                            curtd.class = "col"
+                        }
+                        curtr.appendChild(curtd)
+                        k++
+                    }
+                    outputTableContainer.appendChild(curtr)
+                    coloredBG = !coloredBG
+                }
+            }
+        } catch (err) { console.log(err) }
+    }
+
+
+    function copyConvertedTxt() {
+        try {
+            if (document.selection) { // IE
+                var range = document.body.createTextRange();
+                range.moveToElementText(outputTableContainer);
+                range.select();
+            } else if (window.getSelection) {
+                var range = document.createRange();
+                range.selectNode(outputTableContainer);
+                window.getSelection().removeAllRanges();
+                window.getSelection().addRange(range);
+            }
+            setTimeout(() => {
+            }, 100);
+            document.execCommand("Copy")
+            // document.getSelection().collapseToEnd()
+            $('.toast').toast({ delay: 4000 });
+            $('.toast').toast('show');
+        } catch (err) { alert(err.line + err) }
+    }
+
+    function delayed() {
+        setTimeout(() => {
+            convert(commaType)
+        }, 100);
+    }
+    document.getElementById("input").addEventListener('input', delayed)
+    document.getElementById("output").addEventListener('input', convertToTable)
+</script>
